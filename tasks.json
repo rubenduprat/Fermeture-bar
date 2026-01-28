@@ -2,43 +2,51 @@
   "config": {
     "telephone": "33744883138",
     "nomBar": "LE PETIT BAR",
-    "titrePage": "Checklist Fermeture Bar"
+    "titrePage": "Check-list fermeture salle rez-de-chaussée et bas"
   },
   "checklist": [
     {
-      "categorie": "Espace Client (Salle)",
+      "categorie": "Rez-de-chaussée",
       "items": [
-        "Nettoyer et désinfecter toutes les tables",
-        "Ranger les chaises et tabourets",
-        "Balayer et laver le sol de la salle",
-        "Éteindre les terrasses et rentrer le mobilier"
+        "Redresser salle (tables droites, chaises rangées, carcasse de base faite)",
+        "Enlever les miettes sur les chaises et banquettes",
+        "Nettoyer poste plonge et machine à lave-verre (RDC)",
+        "Éteindre machine à plonge et lumière plonge, vider et rincer (RDC)",
+        "Ranger raques à verre et couvert",
+        "Réassort consoles (verres, couverts, serviettes, sets, etc.)",
+        "Mettre toutes les cartes utilisées dans les panières",
+        "Nettoyer le passe, trier sac à pain",
+        "Vider les poubelles et remettre un sac",
+        "Remplir Ketchup et Mayo",
+        "Nettoyer et mettre les lampes en charge",
+        "Ramasser papiers par terre et nourriture",
+        "Retirer plateaux vides dans frigos",
+        "Rentrer le dehors (RDC)",
+        "Trier les vides (RDC)",
+        "Réunir lavettes et mettre dans seau",
+        "Nettoyer les plateaux",
+        "Sortir poubelles + contener"
       ]
     },
     {
-      "categorie": "Comptoir & Bar",
+      "categorie": "Étage / Haut",
       "items": [
-        "Nettoyer la machine à café et les buses vapeur",
-        "Remplir les frigos (bières, softs, jus)",
-        "Laver et ranger les verres",
-        "Vider et nettoyer les bacs de récupération (égouttoirs)",
-        "Nettoyer le plan de travail et les pompes à bière"
-      ]
-    },
-    {
-      "categorie": "Hygiène & Stocks",
-      "items": [
-        "Vider toutes les poubelles (salle et bar)",
-        "Nettoyer et désinfecter les sanitaires",
-        "Vérifier le stock de citrons et de glaçons pour demain"
-      ]
-    },
-    {
-      "categorie": "Sécurité & Fin de service",
-      "items": [
-        "Compter le fond de caisse",
-        "Éteindre les lumières et la musique",
-        "Vérifier que toutes les issues sont bien verrouillées",
-        "Activer l'alarme"
+        "Mettre les kirs et petits jaunes sur plateau (étage)",
+        "Brancher pad + montres (étage)",
+        "Contrôler frigo (tout doit être filmé et daté)",
+        "Remplir carafes et les ranger au frigo",
+        "Remettre caisse vide (pour les vides)",
+        "Éteindre les écrans",
+        "Redresser coussins extérieurs (étage)",
+        "Éteindre lumière extérieure (étage)",
+        "Nettoyer tables lounge",
+        "Fermer parasols (étage)",
+        "Nettoyer cendriers (étage)",
+        "Nettoyer poste débarrassage (étage)",
+        "Nettoyer chariots noirs",
+        "Nettoyer portes frigos et éteindre la lumière des frigos",
+        "Remettre bac à couverts + seau pour pot à sauce",
+        "Remonter rak à verres vides"
       ]
     }
   ]
