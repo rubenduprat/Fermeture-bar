@@ -1,18 +1,53 @@
-[
+{
+  "config": {
+    "telephone": "33789745946",
+    "nomBar": "LE PETIT BAR",
+    "titrePage": "Check-list fermeture salle rez-de-chaussée et bas"
+  },
+  "checklist": [
     {
-        "categorie": "🍸 ZONE COCKTAILS",
-        "items": ["Plans de travail & Poignées", "Tapis & Speed-racks", "Shakers (Lavage main + démontés)"]
+      "categorie": "Rez-de-chaussée",
+      "items": [
+        "Redresser salle (tables droites, chaises rangées, carcasse de base faite)",
+        "Enlever les miettes sur les chaises et banquettes",
+        "Nettoyer poste plonge et machine à lave-verre (RDC)",
+        "Éteindre machine à plonge et lumière plonge, vider et rincer (RDC)",
+        "Ranger raques à verre et couvert",
+        "Réassort consoles (verres, couverts, serviettes, sets, etc.)",
+        "Mettre toutes les cartes utilisées dans les panières",
+        "Nettoyer le passe, trier sac à pain",
+        "Vider les poubelles et remettre un sac",
+        "Remplir Ketchup et Mayo",
+        "Nettoyer et mettre les lampes en charge",
+        "Ramasser papiers par terre et nourriture",
+        "Retirer plateaux vides dans frigos",
+        "Rentrer le dehors (RDC)",
+        "Trier les vides (RDC)",
+        "Réunir lavettes et mettre dans seau",
+        "Nettoyer les plateaux",
+        "Sortir poubelles + contener"
+      ]
     },
     {
-        "categorie": "🍦 DESSERTS & GLACES",
-        "items": ["Bacs & Ustensiles", "Nettoyage Air-fryer / Micro-ondes", "Chantilly datée & embout propre"]
-    },
-    {
-        "categorie": "☕ MACHINE À CAFÉ",
-        "items": ["Porte-filtres (Lavage main)", "Purge groupes & Buse vapeur", "Stock Café/Sucre/Speculoos"]
-    },
-    {
-        "categorie": "🧼 LAVE-VERRE & STOCK",
-        "items": ["Filtres nettoyés & Porte ouverte", "Bouteilles TNM essuyées", "Réappro Pailles & Fruits"]
+      "categorie": "Étage / Haut",
+      "items": [
+        "Mettre les kirs et petits jaunes sur plateau (étage)",
+        "Brancher pad + montres (étage)",
+        "Contrôler frigo (tout doit être filmé et daté)",
+        "Remplir carafes et les ranger au frigo",
+        "Remettre caisse vide (pour les vides)",
+        "Éteindre les écrans",
+        "Redresser coussins extérieurs (étage)",
+        "Éteindre lumière extérieure (étage)",
+        "Nettoyer tables lounge",
+        "Fermer parasols (étage)",
+        "Nettoyer cendriers (étage)",
+        "Nettoyer poste débarrassage (étage)",
+        "Nettoyer chariots noirs",
+        "Nettoyer portes frigos et éteindre la lumière des frigos",
+        "Remettre bac à couverts + seau pour pot à sauce",
+        "Remonter rak à verres vides"
+      ]
     }
-]
+  ]
+}
