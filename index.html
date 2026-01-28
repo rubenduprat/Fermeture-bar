@@ -3,25 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checklist Fermeture Dynamique</title>
+    <title>Checklist Fermeture</title>
     <style>
-        :root {
-            --primary: #2c3e50; --accent: #e74c3c; --success: #27ae60;
-            --whatsapp: #25D366; --photo: #3498db; --bg: #f4f7f6;
-        }
+        :root { --primary: #2c3e50; --success: #27ae60; --whatsapp: #25D366; --bg: #f4f7f6; --dark-grey: #34495e; --warning: #e67e22; }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .container { width: 100%; max-width: 600px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .container { width: 100%; max-width: 600px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); box-sizing: border-box; }
         .progress-container { position: sticky; top: 0; background: white; padding: 10px 0; z-index: 100; border-bottom: 2px solid #eee; }
         .progress-bar { width: 100%; height: 15px; background: #eee; border-radius: 10px; margin-top: 5px; }
         #progress-fill { width: 0%; height: 100%; background: var(--success); transition: width 0.3s; border-radius: 10px; }
+        h1 { text-align: center; color: var(--primary); font-size: 1.5rem; }
         h2 { background: var(--primary); color: white; padding: 10px; font-size: 1rem; border-radius: 5px; margin-top: 20px; }
         .task-item { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; }
         .done { text-decoration: line-through; color: #95a5a6; opacity: 0.6; }
-        input[type="checkbox"] { width: 22px; height: 22px; margin-right: 12px; cursor: pointer; }
-        textarea { width: 100%; height: 80px; margin-top: 15px; padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
+        input[type="checkbox"] { width: 22px; height: 22px; margin-right: 12px; }
+        textarea { width: 100%; height: 80px; margin-top: 15px; padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; font-family: inherit; }
+        .photo-section { margin-top: 20px; padding: 15px; border: 2px dashed #ccc; border-radius: 8px; text-align: center; }
+        .btn-photo { background: var(--dark-grey); margin-bottom: 10px; color: white; font-weight: bold; }
+        #photo-preview { max-width: 100%; border-radius: 8px; margin-top: 10px; border: 2px solid var(--success); display: none; }
+        #instruction-photo { display:none; font-size: 0.85rem; color: var(--warning); margin-top: 10px; text-align: center; border: 1px solid var(--warning); padding: 10px; border-radius: 5px; }
         .btn-group { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
-        button { padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; }
-        .btn-photo { background: var(--photo); color: white; }
+        button { padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; width: 100%; transition: opacity 0.2s; }
         .btn-whatsapp { background: var(--whatsapp); color: white; }
         .btn-reset { background: #95a5a6; color: white; }
     </style>
@@ -34,109 +35,122 @@
         <div class="progress-bar"><div id="progress-fill"></div></div>
     </div>
 
-    <h1>Fermeture Bar</h1>
+    <h1 id="titre-page">Chargement...</h1>
 
-    <div id="checklist-content">
-        <p>Chargement des tâches...</p>
+    <div id="checklist-content">Chargement des tâches...</div>
+
+    <textarea id="notes" placeholder="Notes ou incidents..."></textarea>
+
+    <div class="photo-section">
+        <label style="display: block; margin-bottom: 10px; font-weight: bold;">📸 Preuve visuelle</label>
+        <input type="file" id="photo-upload" accept="image/*" capture="environment" style="display: none;">
+        <button type="button" class="btn-photo" onclick="document.getElementById('photo-upload').click()">📷 PRENDRE UNE PHOTO</button>
+        <img id="photo-preview" src="" alt="Aperçu">
+        <p id="photo-status" style="display:none; color: var(--success); font-weight: bold; font-size: 0.9rem; margin-top: 5px;">✅ Photo compressée prête</p>
     </div>
 
-    <h3>📝 Notes / Incidents</h3>
-    <textarea id="notes" placeholder="Rien à signaler..."></textarea>
-
     <div class="btn-group">
-        <input type="file" id="cameraInput" accept="image/*" capture="camera" style="display: none;">
-        <button class="btn-photo" onclick="document.getElementById('cameraInput').click()">📸 PRENDRE UNE PHOTO</button>
-        <button id="send-btn" class="btn-whatsapp" onclick="sendWhatsApp()">🟢 ENVOYER SUR WHATSAPP</button>
-        <button class="btn-reset" onclick="resetForm()">🔄 RESET (Nouveau service)</button>
+        <button class="btn-whatsapp" onclick="sendWhatsApp()">🟢 ENVOYER SUR WHATSAPP</button>
+        <p id="instruction-photo">💡 <strong>Rappel :</strong> Envoyez d'abord le texte sur WhatsApp, puis joignez la photo avec l'icône trombone 📎.</p>
+        <button class="btn-reset" onclick="resetForm()">🔄 RÉINITIALISER</button>
     </div>
 </div>
 
 <script>
+    let configData = {};
+    let checkboxes = [];
+    let hasPhoto = false;
+
     const checklistContent = document.getElementById('checklist-content');
     const notes = document.getElementById('notes');
-    const fill = document.getElementById('progress-fill');
-    const perc = document.getElementById('stat-perc');
-    let checkboxes = [];
+    const photoUpload = document.getElementById('photo-upload');
+    const photoPreview = document.getElementById('photo-preview');
+    const photoStatus = document.getElementById('photo-status');
+    const instructionPhoto = document.getElementById('instruction-photo');
 
-    // CHARGEMENT DU JSON
-    async function loadTasks() {
+    async function init() {
         try {
-            const response = await fetch('tasks.json');
-            if (!response.ok) throw new Error();
-            const data = await response.json();
-            renderTasks(data);
+            const resp = await fetch('tasks.json');
+            const data = await resp.json();
+            configData = data.config;
+
+            // MISE À JOUR DU TITRE VIA JSON
+            document.getElementById('titre-page').innerText = configData.titrePage || "Fermeture " + configData.nomBar;
+            
+            let html = "";
+            data.checklist.forEach(section => {
+                html += `<h2>${section.categorie}</h2>`;
+                section.items.forEach(task => {
+                    html += `<label class="task-item"><input type="checkbox" data-task="${task}"> ${task}</label>`;
+                });
+            });
+            checklistContent.innerHTML = html;
+            checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            
+            checkboxes.forEach((cb, i) => {
+                if (localStorage.getItem('task-' + i) === 'true') cb.checked = true;
+                cb.addEventListener('change', () => {
+                    localStorage.setItem('task-' + i, cb.checked);
+                    updateProgress();
+                });
+            });
+            notes.value = localStorage.getItem('bar-notes') || "";
+            updateProgress();
         } catch (e) {
-            checklistContent.innerHTML = "<p style='color:red'>⚠️ Erreur: Assurez-vous que 'tasks.json' est bien dans le même dossier.</p>";
+            checklistContent.innerHTML = "Erreur de chargement JSON.";
         }
-    }
-
-    function renderTasks(data) {
-        let html = "";
-        data.forEach(section => {
-            html += `<h2>${section.categorie}</h2>`;
-            section.items.forEach(task => {
-                html += `<label class="task-item"><input type="checkbox" data-task="${task}"> ${task}</label>`;
-            });
-        });
-        checklistContent.innerHTML = html;
-        checkboxes = document.querySelectorAll('input[type="checkbox"]');
-        setupApp();
-    }
-
-    function setupApp() {
-        checkboxes.forEach((cb, index) => {
-            const saved = localStorage.getItem('bar-task-' + index);
-            if (saved === 'true') cb.checked = true;
-            cb.addEventListener('change', () => {
-                localStorage.setItem('bar-task-' + index, cb.checked);
-                updateProgress();
-            });
-        });
-        notes.value = localStorage.getItem('bar-notes') || "";
-        updateProgress();
     }
 
     function updateProgress() {
         const checked = Array.from(checkboxes).filter(cb => cb.checked).length;
-        const total = checkboxes.length;
-        const progress = total > 0 ? Math.round((checked / total) * 100) : 0;
-        fill.style.width = progress + '%';
-        perc.innerText = progress + '%';
+        const progress = checkboxes.length ? Math.round((checked / checkboxes.length) * 100) : 0;
+        document.getElementById('progress-fill').style.width = progress + '%';
+        document.getElementById('stat-perc').innerText = progress + '%';
         checkboxes.forEach(cb => cb.parentElement.classList.toggle('done', cb.checked));
     }
 
-    function resetForm() {
-        if (confirm("⚠️ Réinitialiser la fiche ?")) {
-            localStorage.clear();
-            location.reload();
-        }
-    }
+    photoUpload.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = event => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 1000; 
+                const scaleSize = MAX_WIDTH / img.width;
+                canvas.width = MAX_WIDTH;
+                canvas.height = img.height * scaleSize;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                photoPreview.src = canvas.toDataURL('image/jpeg', 0.7);
+                photoPreview.style.display = 'block';
+                photoStatus.style.display = 'block';
+                instructionPhoto.style.display = 'block';
+                hasPhoto = true;
+            };
+        };
+    });
 
     function sendWhatsApp() {
-        const phoneNumber = "33600000000"; 
-        const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
-        const progress = Math.round((checkedCount / checkboxes.length) * 100);
-
-        if (progress < 100 && !confirm(`⚠️ Fermeture à ${progress}%. Envoyer ?`)) return;
-
-        const now = new Date();
-        const dateStr = now.toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'short'});
-        const timeStr = now.getHours() + "h" + now.getMinutes().toString().padStart(2, '0');
-        
         let taskList = "";
         checkboxes.forEach(cb => {
             taskList += (cb.checked ? "✅ " : "❌ ") + cb.getAttribute('data-task') + "\n";
         });
+        const photoMsg = hasPhoto ? "\n🖼️ *PHOTO :* Jointe (via trombone)" : "\n⚠️ *PHOTO :* Aucune photo";
+        const message = `*🏁 RAPPORT ${configData.nomBar}*\n\n${taskList}\n*📝 NOTES :* ${notes.value || "RAS"}${photoMsg}`;
+        if (hasPhoto) alert("N'oubliez pas de joindre la photo avec le trombone 📎 sur WhatsApp !");
+        window.open(`https://wa.me/${configData.telephone}?text=${encodeURIComponent(message)}`, '_blank');
+    }
 
-        const rapportNotes = notes.value.trim() || "Rien à signaler.";
-        const message = `*🏁 RAPPORT DE FERMETURE BAR*\n_Le ${dateStr} à ${timeStr}_\n\n*📊 STATUT : ${progress}%*\n\n*DÉTAIL :*\n${taskList}\n*📝 NOTES :*\n"${rapportNotes}"`;
-
-        window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, '_blank');
+    function resetForm() {
+        if(confirm("Réinitialiser ?")) { localStorage.clear(); location.reload(); }
     }
 
     notes.addEventListener('input', () => localStorage.setItem('bar-notes', notes.value));
-    loadTasks();
+    init();
 </script>
 </body>
 </html>
-
