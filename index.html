@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checklist Fermeture</title>
+    <style>
+        :root { --primary: #2c3e50; --success: #27ae60; --whatsapp: #25D366; --bg: #f4f7f6; --dark-grey: #34495e; --warning: #e67e22; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 600px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); box-sizing: border-box; }
+        .progress-container { position: sticky; top: 0; background: white; padding: 10px 0; z-index: 100; border-bottom: 2px solid #eee; }
+        .progress-bar { width: 100%; height: 15px; background: #eee; border-radius: 10px; margin-top: 5px; }
+        #progress-fill { width: 0%; height: 100%; background: var(--success); transition: width 0.3s; border-radius: 10px; }
+        h1 { text-align: center; color: var(--primary); font-size: 1.5rem; }
+        h2 { background: var(--primary); color: white; padding: 10px; font-size: 1rem; border-radius: 5px; margin-top: 20px; }
+        .task-item { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; }
+        .done { text-decoration: line-through; color: #95a5a6; opacity: 0.6; }
+        input[type="checkbox"] { width: 22px; height: 22px; margin-right: 12px; }
+        textarea { width: 100%; height: 80px; margin-top: 15px; padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; font-family: inherit; }
+        .photo-section { margin-top: 20px; padding: 15px; border: 2px dashed #ccc; border-radius: 8px; text-align: center; }
+        .btn-photo { background: var(--dark-grey); margin-bottom: 10px; color: white; font-weight: bold; }
+        #photo-preview { max-width: 100%; border-radius: 8px; margin-top: 10px; border: 2px solid var(--success); display: none; }
+        #instruction-photo { display:none; font-size: 0.85rem; color: var(--warning); margin-top: 10px; text-align: center; border: 1px solid var(--warning); padding: 10px; border-radius: 5px; }
+        .btn-group { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+        button { padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; width: 100%; transition: opacity 0.2s; }
+        .btn-whatsapp { background: var(--whatsapp); color: white; }
+        .btn-reset { background: #95a5a6; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="progress-container">
+        <strong>Progression : <span id="stat-perc">0%</span></strong>
+        <div class="progress-bar"><div id="progress-fill"></div></div>
+    </div>
+
+    <h1 id="titre-page">Chargement...</h1>
+
+    <div id="checklist-content">Chargement des tâches...</div>
+
+    <textarea id="notes" placeholder="Notes ou incidents..."></textarea>
+
+    <div class="photo-section">
+        <label style="display: block; margin-bottom: 10px; font-weight: bold;">📸 Preuve visuelle</label>
+        <input type="file" id="photo-upload" accept="image/*" capture="environment" style="display: none;">
+        <button type="button" class="btn-photo" onclick="document.getElementById('photo-upload').click()">📷 PRENDRE UNE PHOTO</button>
+        <img id="photo-preview" src="" alt="Aperçu">
+        <p id="photo-status" style="display:none; color: var(--success); font-weight: bold; font-size: 0.9rem; margin-top: 5px;">✅ Photo compressée prête</p>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn-whatsapp" onclick="sendWhatsApp()">🟢 ENVOYER SUR WHATSAPP</button>
+        <p id="instruction-photo">💡 <strong>Rappel :</strong> Envoyez d'abord le texte sur WhatsApp, puis joignez la photo avec l'icône trombone 📎.</p>
+        <button class="btn-reset" onclick="resetForm()">🔄 RÉINITIALISER / NOUVEAU SERVICE</button>
+    </div>
+</div>
+
+<script>
+    let configData = {};
+    let checkboxes = [];
+    let hasPhoto = false;
+
+    const checklistContent = document.getElementById('checklist-content');
+    const notes = document.getElementById('notes');
+    const photoUpload = document.getElementById('photo-upload');
+    const photoPreview = document.getElementById('photo-preview');
+    const photoStatus = document.getElementById('photo-status');
+    const instructionPhoto = document.getElementById('instruction-photo');
+
+    async function init() {
+        try {
+            const resp = await fetch('tasks.json');
+            const data = await resp.json();
+            configData = data.config;
+
+            document.getElementById('titre-page').innerText = configData.titrePage || "Fermeture " + configData.nomBar;
+            
+            let html = "";
+            data.checklist.forEach((section, sIdx) => {
+                html += `<h2>${section.categorie}</h2>`;
+                section.items.forEach((task, tIdx) => {
+                    // On crée un ID unique basé sur l'index pour la sauvegarde
+                    const uniqueId = `task-${sIdx}-${tIdx}`;
+                    html += `<label class="task-item"><input type="checkbox" id="${uniqueId}" data-task="${task}"> ${task}</label>`;
+                });
+            });
+            checklistContent.innerHTML = html;
+            
+            checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            
+            // --- RESTAURATION DES DONNÉES ---
+            const savedData = JSON.parse(localStorage.getItem('checklist_save') || '{}');
+            
+            checkboxes.forEach((cb) => {
+                // Restaurer l'état coché
+                if (savedData[cb.id]) {
+                    cb.checked = true;
+                }
+
+                cb.addEventListener('change', () => {
+                    updateProgress();
+                    saveToCache();
+                });
+            });
+
+            // Restaurer les notes
+            notes.value = localStorage.getItem('checklist_notes') || "";
+            notes.addEventListener('input', saveToCache);
+
+            // Restaurer la photo (si stockée en base64)
+            const savedPhoto = localStorage.getItem('checklist_photo');
+            if (savedPhoto) {
+                photoPreview.src = savedPhoto;
+                photoPreview.style.display = 'block';
+                photoStatus.style.display = 'block';
+                instructionPhoto.style.display = 'block';
+                hasPhoto = true;
+            }
+
+            updateProgress();
+        } catch (e) {
+            checklistContent.innerHTML = "Erreur de chargement JSON.";
+            console.error(e);
+        }
+    }
+
+    // --- FONCTION DE SAUVEGARDE ---
+    function saveToCache() {
+        const dataToSave = {};
+        checkboxes.forEach(cb => {
+            if (cb.checked) dataToSave[cb.id] = true;
+        });
+        localStorage.setItem('checklist_save', JSON.stringify(dataToSave));
+        localStorage.setItem('checklist_notes', notes.value);
+        // Note : La photo est déjà sauvegardée dans le listener photoUpload
+    }
+
+    function updateProgress() {
+        const checked = Array.from(checkboxes).filter(cb => cb.checked).length;
+        const progress = checkboxes.length ? Math.round((checked / checkboxes.length) * 100) : 0;
+        document.getElementById('progress-fill').style.width = progress + '%';
+        document.getElementById('stat-perc').innerText = progress + '%';
+        checkboxes.forEach(cb => cb.parentElement.classList.toggle('done', cb.checked));
+    }
+
+    photoUpload.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = event => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 800; // Légèrement réduit pour le stockage localStorage
+                const scaleSize = MAX_WIDTH / img.width;
+                canvas.width = MAX_WIDTH;
+                canvas.height = img.height * scaleSize;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+                const base64Photo = canvas.toDataURL('image/jpeg', 0.6);
+                photoPreview.src = base64Photo;
+                photoPreview.style.display = 'block';
+                photoStatus.style.display = 'block';
+                instructionPhoto.style.display = 'block';
+                hasPhoto = true;
+                
+                // Sauvegarde de la photo
+                try {
+                    localStorage.setItem('checklist_photo', base64Photo);
+                } catch(e) {
+                    console.warn("Photo trop lourde pour le cache du navigateur");
+                }
+            };
+        };
+    });
+
+    function sendWhatsApp() {
+        let taskList = "";
+        checkboxes.forEach(cb => {
+            taskList += (cb.checked ? "✅ " : "❌ ") + cb.getAttribute('data-task') + "\n";
+        });
+        const photoMsg = hasPhoto ? "\n🖼️ *PHOTO :* Jointe (via trombone)" : "\n⚠️ *PHOTO :* Aucune photo";
+        const message = `*🏁 RAPPORT ${configData.nomBar}*\n\n${taskList}\n*📝 NOTES :* ${notes.value || "RAS"}${photoMsg}`;
+        if (hasPhoto) alert("N'oubliez pas de joindre la photo avec le trombone 📎 sur WhatsApp !");
+        window.open(`https://wa.me/${configData.telephone}?text=${encodeURIComponent(message)}`, '_blank');
+    }
+
+    function resetForm() {
+        if(confirm("Voulez-vous réinitialiser la liste pour un nouveau service ?")) { 
+            localStorage.removeItem('checklist_save');
+            localStorage.removeItem('checklist_notes');
+            localStorage.removeItem('checklist_photo');
+            location.reload(); 
+        }
+    }
+
+    init();
+</script>
+</body>
+</html>
+
